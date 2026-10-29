@@ -1,0 +1,1151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The field of the saffron · Season report</title>
+<meta name="description" content="A season in the saffron field, told in particles: blooms, harvests, pollinators and growers.">
+<meta name="theme-color" content="#0b0705">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soot:#0b0705;
+    --char:#1c0e06;
+    --ember:#ff6a13;
+    --apricot:#ffb36b;
+    --ash:#fbe9d7;
+    --muted:#c39a7d;
+    --line:rgba(255,179,107,.22);
+    --mono:'Geist', 'Helvetica Neue', Arial, sans-serif;
+    --display:'Geist', 'Helvetica Neue', Arial, sans-serif;
+    --pad:clamp(16px, 3vw, 36px);
+    --ease:cubic-bezier(.2,.8,.2,1);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--soot);color:var(--ash)}
+  body{font-family:var(--display);overflow-x:hidden;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+  body.loading{overflow:hidden;height:100vh}
+  @media (hover:hover) and (pointer:fine){ body, body button{cursor:none} }
+
+  #gl{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;touch-action:pan-y}
+  .shade{position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(120% 80% at 50% 42%, transparent 35%, rgba(11,7,5,.82) 100%),
+      linear-gradient(to top, rgba(11,7,5,.9) 0%, rgba(11,7,5,0) 38%),
+      linear-gradient(to bottom, rgba(11,7,5,.7) 0%, rgba(11,7,5,0) 16%)}
+  .grain{position:fixed;inset:-50%;pointer-events:none;z-index:2;opacity:.07;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grain 1.2s steps(4) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}100%{transform:translate(0,0)}}
+
+  #scroll-space{height:1100vh}
+
+  /* ---------- UI shell ---------- */
+  .ui{position:fixed;inset:0;z-index:5;pointer-events:none}
+  .ui button,.ui a{pointer-events:auto}
+  .label{font:500 12px/1 var(--mono);letter-spacing:.01em}
+  button{font:inherit;color:inherit;background:none;border:0;padding:0}
+  :focus-visible{outline:1px solid var(--apricot);outline-offset:4px}
+
+  .top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:var(--pad);padding-top:max(var(--pad), env(safe-area-inset-top))}
+  .brand{display:flex;align-items:center;gap:10px;font:600 19px/1 var(--display);letter-spacing:-.03em;color:var(--ash);text-decoration:none}
+  .brand svg{width:22px;height:22px;animation:spin 14s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .status{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;color:var(--muted)}
+  .status i{width:6px;height:6px;border-radius:50%;background:var(--ember);animation:blink 1.6s ease-in-out infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .status span{display:inline-block;transition:opacity .35s, transform .35s var(--ease)}
+  .status span.swap{opacity:0;transform:translateY(6px)}
+  .sound{display:flex;align-items:center;gap:10px}
+  .bars{display:flex;align-items:flex-end;gap:2px;height:11px}
+  .bars b{width:2px;height:3px;background:var(--apricot);transition:height .3s}
+  .sound[aria-pressed="true"] .bars b{animation:eq .9s ease-in-out infinite}
+  .sound[aria-pressed="true"] .bars b:nth-child(2){animation-delay:-.3s}
+  .sound[aria-pressed="true"] .bars b:nth-child(3){animation-delay:-.6s}
+  .sound[aria-pressed="true"] .bars b:nth-child(4){animation-delay:-.15s}
+  @keyframes eq{0%,100%{height:3px}50%{height:11px}}
+
+  .bottom{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:var(--pad);padding-bottom:max(var(--pad), env(safe-area-inset-bottom));color:var(--muted)}
+  .bottom button,.bottom a{color:var(--ash)}
+  .made{color:var(--muted)}
+  .made b{color:var(--ash);font-weight:500}
+
+  /* side rail */
+  .rail{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;list-style:none;margin:0;padding:0}
+  .rail button{display:flex;align-items:center;justify-content:flex-end;gap:10px;color:var(--muted);transition:color .3s}
+  .rail button em{font-style:normal;opacity:0;transform:translateX(6px);transition:opacity .3s, transform .3s var(--ease)}
+  .rail button:hover em,.rail button.on em{opacity:1;transform:none}
+  .rail button::after{content:"";width:4px;height:4px;border-radius:50%;background:currentColor;transition:transform .4s var(--ease), background .3s}
+  .rail button.on{color:var(--ash)}
+  .rail button.on::after{transform:scale(2);background:var(--ember);box-shadow:0 0 10px var(--ember)}
+
+  /* ---------- split text ---------- */
+  .w{display:inline-block;white-space:nowrap}
+  .ch{display:inline-block;opacity:0;transform:translateY(.45em) rotate(4deg);filter:blur(10px);
+    transition:opacity .5s ease, transform .9s var(--ease), filter .7s ease;
+    transition-delay:calc(var(--i) * 6ms)}
+  .is-active .ch{opacity:1;transform:none;filter:blur(0);transition-delay:calc(var(--i) * var(--s, 34ms) + var(--d, 0ms))}
+  .fx{opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .9s var(--ease)}
+  .is-active .fx{opacity:1;transform:none;transition-delay:var(--d,0ms)}
+
+  /* ---------- hero ---------- */
+  .hero{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);align-items:end;gap:28px 48px;padding:var(--pad);padding-bottom:clamp(80px,13vh,140px)}
+  .hero h1{margin:0;font-weight:340;font-size:clamp(54px,10.6vw,180px);line-height:.86;letter-spacing:-.055em}
+  .hero h1 .line{display:block}
+  .hero h1 .line + .line{padding-left:.9em;color:var(--apricot)}
+  .hero-copy{margin:0;font:400 15px/1.6 var(--mono);letter-spacing:0;color:var(--muted);max-width:40ch;--s:7ms;--d:500ms}
+  .hero-copy .ch{filter:none;transform:none}
+  .hint{display:flex;align-items:center;gap:12px;margin-top:22px;color:var(--ash)}
+  .hint::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ember);box-shadow:0 0 12px var(--ember);animation:blink 1.6s ease-in-out infinite}
+  @keyframes drip{0%{transform:scaleY(0)}60%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+
+  /* ---------- stat sections ---------- */
+  .stat{position:absolute;left:0;right:0;bottom:clamp(76px,12vh,128px);display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 var(--pad)}
+  .stat-index{display:flex;align-items:center;gap:14px;color:var(--apricot);margin-bottom:clamp(10px,2vh,20px)}
+  .stat-index span{color:var(--muted)}
+  .stat-head{display:flex;align-items:flex-start;justify-content:center;gap:.12em}
+  .stat h2{margin:0;font-weight:380;font-size:clamp(42px,8.6vw,132px);line-height:.92;letter-spacing:-.05em}
+  .count{font:400 clamp(13px,1.5vw,20px)/1 var(--mono);color:var(--ember);margin-top:.5em;letter-spacing:.02em;font-variant-numeric:tabular-nums;display:inline-block;min-width:4.2ch;text-align:left}
+
+  /* ---------- outro ---------- */
+  .outro{position:absolute;left:0;right:0;bottom:clamp(70px,11vh,120px);padding:0 var(--pad)}
+  .outro-row{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+  .outro h2{margin:0;font-weight:380;font-size:clamp(34px,5.4vw,84px);line-height:.92;letter-spacing:-.05em;max-width:12ch}
+  .replay{display:flex;align-items:center;gap:10px;color:var(--ash);border:1px solid var(--line);border-radius:999px;padding:12px 18px;transition:background .3s, border-color .3s, color .3s}
+  .replay:hover{background:var(--ember);border-color:var(--ember);color:var(--soot)}
+  .outro:not(.is-active) .replay{pointer-events:none}
+
+  /* ---------- cursor ---------- */
+  .cursor,.cursor-dot{position:fixed;left:0;top:0;pointer-events:none;z-index:30;border-radius:50%;transform:translate3d(-100px,-100px,0)}
+  .cursor{width:36px;height:36px;margin:-18px 0 0 -18px;border:1px solid rgba(255,106,19,.9);transition:width .3s var(--ease), height .3s var(--ease), margin .3s var(--ease), background .3s}
+  .cursor.big{width:64px;height:64px;margin:-32px 0 0 -32px;background:rgba(255,106,19,.12)}
+  .cursor.down{width:22px;height:22px;margin:-11px 0 0 -11px;background:rgba(255,106,19,.35)}
+  .cursor-dot{width:4px;height:4px;margin:-2px 0 0 -2px;background:var(--apricot)}
+  .tap{position:fixed;pointer-events:none;z-index:29;border-radius:50%;border:1px solid var(--apricot);transform:translate(-50%,-50%);animation:tap 1s var(--ease) forwards}
+  .tap.two{border-color:var(--ember);animation-delay:.12s;opacity:0}
+  @keyframes tap{0%{width:0;height:0;opacity:1}100%{width:220px;height:220px;opacity:0}}
+  @media (hover:none),(pointer:coarse){.cursor,.cursor-dot{display:none}}
+
+  /* ---------- loader ---------- */
+  .loader{position:fixed;inset:0;z-index:40;background:var(--soot);display:grid;place-items:center;transition:opacity 1s ease .2s, visibility 0s linear 1.2s}
+  .loader.done{opacity:0;visibility:hidden}
+  .loader-inner{display:flex;flex-direction:column;align-items:center;gap:18px;transition:transform 1.1s var(--ease), opacity .8s}
+  .loader.done .loader-inner{transform:scale(1.6);opacity:0}
+  .loader svg{width:120px;height:120px;transform:rotate(-90deg)}
+  .loader circle{fill:none;stroke-width:1}
+  .loader .track{stroke:var(--line)}
+  .loader .arc{stroke:var(--ember);stroke-dasharray:339.3;stroke-dashoffset:339.3;stroke-linecap:round}
+  .loader-num{position:absolute;font:300 34px/1 var(--display);letter-spacing:-.04em}
+  .loader-ring{position:relative;display:grid;place-items:center}
+  .loader-label{color:var(--muted)}
+
+  .nogl{position:fixed;inset:0;display:none;place-items:center;text-align:center;padding:24px;z-index:50}
+  .nogl.show{display:grid}
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 860px){
+    .rail{display:none}
+    .hero{grid-template-columns:1fr;gap:18px;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+    .hero h1 .line + .line{padding-left:.5em}
+    .hero-copy{font-size:14px;max-width:44ch}
+    .outro-row{flex-direction:column;align-items:flex-start}
+  }
+  @media (max-width: 560px){
+    .status{display:none}
+    .made{display:none}
+    .stat{bottom:calc(84px + env(safe-area-inset-bottom))}
+    .outro{bottom:calc(72px + env(safe-area-inset-bottom))}
+    .replay{padding:10px 14px}
+  }
+  @media (max-height: 560px) and (orientation: landscape){
+    .stat h2{font-size:clamp(32px,6vw,64px)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ch{filter:none !important;transform:none !important}
+    .grain,.brand svg{animation:none}
+  }
+</style>
+</head>
+<body class="loading">
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="shade"></div>
+<div class="grain"></div>
+<div id="scroll-space"></div>
+
+<div class="ui">
+  <header class="top">
+    <a class="brand" href="#" aria-label="Saffron field — back to top" data-goto="0">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <g stroke="#ff6a13" stroke-width="1.2">
+          <ellipse cx="12" cy="6.5" rx="2.6" ry="5"/>
+          <ellipse cx="12" cy="6.5" rx="2.6" ry="5" transform="rotate(72 12 12)"/>
+          <ellipse cx="12" cy="6.5" rx="2.6" ry="5" transform="rotate(144 12 12)"/>
+          <ellipse cx="12" cy="6.5" rx="2.6" ry="5" transform="rotate(216 12 12)"/>
+          <ellipse cx="12" cy="6.5" rx="2.6" ry="5" transform="rotate(288 12 12)"/>
+        </g>
+        <circle cx="12" cy="12" r="1.6" fill="#ffb36b"/>
+      </svg>
+      saffron
+    </a>
+    <div class="status label" aria-live="polite"><i></i><span id="status">Scroll to sink in</span></div>
+    <button class="sound label" id="sound" aria-pressed="false">
+      <span id="soundLabel">Sound off</span>
+      <span class="bars" aria-hidden="true"><b></b><b></b><b></b><b></b></span>
+    </button>
+  </header>
+
+  <ul class="rail label" id="rail">
+    <li><button data-sec="0"><em>Field</em>00</button></li>
+    <li><button data-sec="1"><em>Bloom</em>01</button></li>
+    <li><button data-sec="2"><em>Harvest</em>02</button></li>
+    <li><button data-sec="3"><em>Wings</em>03</button></li>
+    <li><button data-sec="4"><em>Gem</em>04</button></li>
+    <li><button data-sec="5"><em>Picks</em>05</button></li>
+  </ul>
+
+  <section class="hero" data-sec="0">
+    <div>
+      <h1><span class="line split" data-o="0">The field</span><span class="line split" data-o="9">of the saffron</span></h1>
+    </div>
+    <div>
+      <p class="hero-copy split">A season in the saffron field, told in shapes and picks: what bloomed, who tended the finest crocus rows, and which harvest glowed brightest.</p>
+    </div>
+  </section>
+
+  <section class="stat" data-sec="1">
+    <div class="stat-head"><h2 class="split">Blooms gathered</h2><sup class="count fx" style="--d:500ms" data-to="742">(000)</sup></div>
+  </section>
+
+  <section class="stat" data-sec="2">
+    <div class="stat-head"><h2 class="split">Harvests</h2><sup class="count fx" style="--d:400ms" data-to="318">(000)</sup></div>
+  </section>
+
+  <section class="stat" data-sec="3">
+    <div class="stat-head"><h2 class="split">Pollinators</h2><sup class="count fx" style="--d:450ms" data-to="126">(000)</sup></div>
+  </section>
+
+  <section class="stat" data-sec="4">
+    <div class="stat-head"><h2 class="split">Growers known</h2><sup class="count fx" style="--d:500ms" data-to="254">(000)</sup></div>
+  </section>
+
+  <section class="outro" data-sec="5">
+    <div class="outro-row">
+      <h2 class="split">Until the next bloom</h2>
+      <button class="replay label fx" style="--d:900ms" data-goto="0">Replay the season ↺</button>
+    </div>
+  </section>
+
+  <footer class="bottom label">
+    <button id="share">Share</button>
+    <span class="made">Made by <b>Ember Studio</b></span>
+  </footer>
+</div>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="loader-ring">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="54"/><circle class="arc" id="arc" cx="60" cy="60" r="54"/></svg>
+      <div class="loader-num" id="loadNum">0</div>
+    </div>
+    <div class="loader-label label">Warming the field</div>
+  </div>
+</div>
+
+<div class="nogl" id="nogl"><p class="label">This page needs WebGL to grow its field.<br>Try a recent browser.</p></div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const isTouch = matchMedia('(hover: none), (pointer: coarse)').matches;
+const isSmall = Math.min(innerWidth, innerHeight) < 700;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const lerp = (a, b, t) => a + (b - a) * t;
+
+/* ---------------------------------------------------------------
+   Text splitting
+---------------------------------------------------------------- */
+function split(el, offset = 0) {
+  const text = el.textContent.trim();
+  el.textContent = '';
+  el.setAttribute('aria-label', text);
+  let i = offset;
+  const words = text.split(' ');
+  words.forEach((w, wi) => {
+    const ws = document.createElement('span');
+    ws.className = 'w';
+    ws.setAttribute('aria-hidden', 'true');
+    for (const c of w) {
+      const s = document.createElement('span');
+      s.className = 'ch';
+      s.textContent = c;
+      s.style.setProperty('--i', i++);
+      ws.appendChild(s);
+    }
+    el.appendChild(ws);
+    if (wi < words.length - 1) { el.appendChild(document.createTextNode(' ')); i++; }
+  });
+}
+$$('.split').forEach(el => split(el, +(el.dataset.o || 0)));
+
+/* ---------------------------------------------------------------
+   Renderer
+---------------------------------------------------------------- */
+const canvas = $('#gl');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: !isSmall, alpha: false, powerPreference: 'high-performance' });
+} catch (e) {
+  $('#nogl').classList.add('show');
+  throw e;
+}
+const PR = Math.min(devicePixelRatio || 1, isSmall ? 1.6 : 2);
+renderer.setPixelRatio(PR);
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x0b0705, 1);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 200);
+scene.add(camera);
+
+const NOISE = /* glsl */`
+vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+float snoise(vec3 v){
+  const vec2 C=vec2(1.0/6.0,1.0/3.0);
+  const vec4 D=vec4(0.0,0.5,1.0,2.0);
+  vec3 i=floor(v+dot(v,C.yyy));
+  vec3 x0=v-i+dot(i,C.xxx);
+  vec3 g=step(x0.yzx,x0.xyz);
+  vec3 l=1.0-g;
+  vec3 i1=min(g.xyz,l.zxy);
+  vec3 i2=max(g.xyz,l.zxy);
+  vec3 x1=x0-i1+C.xxx;
+  vec3 x2=x0-i2+C.yyy;
+  vec3 x3=x0-D.yyy;
+  i=mod289(i);
+  vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+  float n_=0.142857142857;
+  vec3 ns=n_*D.wyz-D.xzx;
+  vec4 j=p-49.0*floor(p*ns.z*ns.z);
+  vec4 x_=floor(j*ns.z);
+  vec4 y_=floor(j-7.0*x_);
+  vec4 x=x_*ns.x+ns.yyyy;
+  vec4 y=y_*ns.x+ns.yyyy;
+  vec4 h=1.0-abs(x)-abs(y);
+  vec4 b0=vec4(x.xy,y.xy);
+  vec4 b1=vec4(x.zw,y.zw);
+  vec4 s0=floor(b0)*2.0+1.0;
+  vec4 s1=floor(b1)*2.0+1.0;
+  vec4 sh=-step(h,vec4(0.0));
+  vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;
+  vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+  vec3 p0=vec3(a0.xy,h.x);
+  vec3 p1=vec3(a0.zw,h.y);
+  vec3 p2=vec3(a1.xy,h.z);
+  vec3 p3=vec3(a1.zw,h.w);
+  vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+  p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+  vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);
+  m=m*m;
+  return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
+}`;
+
+/* ---------------------------------------------------------------
+   The field: a floor and a ceiling of particles that we sink into
+---------------------------------------------------------------- */
+const RIPPLES = 6;
+const FIELD_W = 84, FIELD_Z0 = -78, FIELD_Z1 = 22;
+
+/* Cursor trail: a small canvas in field space the pointer paints into and that slowly fades */
+class Trail {
+  constructor(size) {
+    this.c = document.createElement('canvas');
+    this.c.width = this.c.height = size;
+    this.ctx = this.c.getContext('2d');
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(0, 0, size, size);
+    this.tex = new THREE.CanvasTexture(this.c);
+    this.tex.minFilter = this.tex.magFilter = THREE.LinearFilter;
+    this.tex.generateMipmaps = false;
+    this.last = null;
+    this.size = size;
+  }
+  toPx(xz) {
+    return [(xz.x + FIELD_W / 2) / FIELD_W * this.size, (1 - (xz.y - FIELD_Z0) / (FIELD_Z1 - FIELD_Z0)) * this.size];
+  }
+  dab(x, y, r, a) {
+    const g = this.ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(255,255,255,${a})`);
+    g.addColorStop(0.5, `rgba(255,255,255,${a * 0.55})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    this.ctx.fillStyle = g;
+    this.ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  paint(xz, r = 3.6) {
+    if (!xz) { this.last = null; return; }
+    const [x, y] = this.toPx(xz);
+    const rp = r / FIELD_W * this.size;
+    if (this.last) {
+      const [lx, ly] = this.last;
+      const d = Math.hypot(x - lx, y - ly);
+      if (d > this.size * 0.25) { this.last = [x, y]; return; }
+      const steps = Math.max(1, Math.ceil(d / (rp * 0.3)));
+      for (let s = 1; s <= steps; s++) this.dab(lx + (x - lx) * s / steps, ly + (y - ly) * s / steps, rp, 0.1);
+    } else this.dab(x, y, rp, 0.1);
+    this.last = [x, y];
+  }
+  update(dt) {
+    this.ctx.fillStyle = `rgba(0,0,0,${1 - Math.exp(-dt * 0.6)})`;
+    this.ctx.fillRect(0, 0, this.size, this.size);
+    this.tex.needsUpdate = true;
+  }
+}
+
+/* Height of the field, shared by the particles and the contour surface */
+const FIELD_HEIGHT = /* glsl */`
+uniform float uTime, uTravel, uFlip, uBase, uSeed, uSide, uCenter;
+uniform vec4 uRip[${RIPPLES}];
+uniform sampler2D uTrail;
+${NOISE}
+// x: height, y: ripple glow, z: trail amount
+vec3 fieldHeight(vec2 xz){
+  float zz = xz.y - uTravel;
+  float h = snoise(vec3(xz.x*0.045 + uSeed, zz*0.045, uTime*0.04)) * 2.3;
+  h += snoise(vec3(xz.x*0.12, zz*0.12 + uSeed, uTime*0.09)) * 0.6;
+  vec2 tuv = vec2((xz.x + ${FIELD_W / 2}.0) / ${FIELD_W}.0, (xz.y - (${FIELD_Z0}.0)) / ${FIELD_Z1 - FIELD_Z0}.0);
+  float tr = texture2D(uTrail, tuv).r;
+  tr = smoothstep(0.03, 0.9, tr);
+  h -= tr * 1.0;
+  float glow = 0.0;
+  for(int i=0;i<${RIPPLES};i++){
+    vec4 r = uRip[i];
+    float age = uTime - r.z;
+    if(age > 0.0 && age < 5.0){
+      float d = distance(xz, r.xy);
+      float front = age * 9.0;
+      float w = exp(-pow(d - front, 2.0) * 0.3);
+      float dec = pow(1.0 - age/5.0, 1.6) * r.w;
+      h += sin((d - front) * 1.3) * w * dec * 2.0;
+      glow += w * dec * 1.2;
+    }
+  }
+  return vec3(h, glow, tr);
+}
+// the field dips in the middle and climbs into the left and right corners
+float fieldCurve(float x){ return pow(abs(x)/34.0, 2.2) * 11.0; }
+// the upper layer only shows at the sides, so the centre of the view stays open
+float sideMask(float x){
+  float side = mix(1.0, smoothstep(11.0, 26.0, abs(x)), uSide);
+  // inside the tunnel the floor thins out down the middle so the sculptures read against dark space
+  float centre = mix(1.0, mix(0.4, 1.0, smoothstep(3.0, 17.0, abs(x))), uCenter);
+  return side * centre;
+}
+float fieldBand(vec2 xz){ return smoothstep(-0.4, 0.75, snoise(vec3(xz.x*0.03 + uSeed*2.0, (xz.y - uTravel)*0.055, uTime*0.05))); }
+`;
+
+/* Sparkles: a light scatter of glints floating just above the surface */
+const fieldVert = /* glsl */`
+uniform float uPR;
+attribute float aRand;
+varying float vGlow, vFade, vRand, vTw, vTr;
+${FIELD_HEIGHT}
+void main(){
+  vec3 p = position;
+  vec3 f = fieldHeight(p.xz);
+  float rim = f.z * (1.0 - f.z) * 4.0;
+  p.y = uBase + uFlip * (f.x + fieldCurve(p.x) + 0.12 + aRand * 0.7);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  float depth = -mv.z;
+  gl_Position = projectionMatrix * mv;
+  float sz = (0.55 + pow(aRand, 2.0) * 1.6) * (1.0 + (f.y + rim * 0.5) * 1.2);
+  gl_PointSize = clamp(sz * uPR * 56.0 / depth, 1.5, 20.0);
+  vGlow = f.y + rim * 0.5; vRand = aRand; vTr = f.z;
+  vTw = 0.5 + 0.5 * sin(uTime * (0.8 + aRand * 1.6) + aRand * 90.0);
+  vFade = (1.0 - smoothstep(14.0, 70.0, depth)) * smoothstep(1.0, 5.0, depth) * sideMask(p.x);
+}`;
+const fieldFrag = /* glsl */`
+uniform float uVis;
+varying float vGlow, vFade, vRand, vTw, vTr;
+void main(){
+  float d = length(gl_PointCoord - 0.5);
+  if(d > 0.5) discard;
+  float soft = pow(1.0 - smoothstep(0.0, 0.5, d), 1.6);
+  vec3 col = mix(vec3(1.0, 0.55, 0.16), vec3(1.0, 0.86, 0.6), vRand * 0.7 + vGlow * 0.4);
+  float a = soft * vFade * uVis * (0.35 + 0.65 * vTw) * (1.0 + vGlow) * (1.0 - vTr * 0.5);
+  gl_FragColor = vec4(col, a);
+}`;
+
+/* Silk: the main surface, a soft glowing sheet whose folds catch the light,
+   with fine streaks along the flow and contour lines revealed by the cursor trail and ripples */
+const surfVert = /* glsl */`
+varying float vH, vGlow, vFade, vTr;
+varying vec3 vN, vW;
+${FIELD_HEIGHT}
+float surfY(vec2 xz, vec3 f){ return uBase + uFlip * (f.x + fieldCurve(xz.x)); }
+void main(){
+  vec3 p = position;
+  vec3 f = fieldHeight(p.xz);
+  const float e = 0.4;
+  vec2 ax = p.xz + vec2(e, 0.0), az = p.xz + vec2(0.0, e);
+  float y0 = surfY(p.xz, f);
+  float yx = surfY(ax, fieldHeight(ax));
+  float yz = surfY(az, fieldHeight(az));
+  vN = normalize(cross(vec3(0.0, yz - y0, e), vec3(e, yx - y0, 0.0)));
+  p.y = y0;
+  vW = p;
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  float depth = -mv.z;
+  vH = f.x; vGlow = f.y; vTr = f.z;
+  vFade = (1.0 - smoothstep(10.0, 52.0, depth)) * smoothstep(0.8, 5.0, depth) * sideMask(p.x);
+}`;
+const surfFrag = /* glsl */`
+uniform float uVis, uTime, uTravel, uSeed;
+varying float vH, vGlow, vFade, vTr;
+varying vec3 vN, vW;
+${NOISE}
+void main(){
+  vec3 V = normalize(cameraPosition - vW);
+  vec3 N = normalize(vN);
+  if(dot(N, V) < 0.0) N = -N;
+  float ndv = clamp(dot(N, V), 0.0, 1.0);
+  float fres = pow(1.0 - ndv, 3.0);
+  float diff = max(dot(N, normalize(vec3(-0.35, 0.85, 0.4))), 0.0);
+  float ridge = smoothstep(0.3, 2.0, vH);
+
+  // silky streaks that run with the flow
+  float zz = vW.z - uTravel;
+  float s1 = snoise(vec3(vW.x * 0.55 + uSeed, zz * 0.09, uTime * 0.05));
+  float s2 = snoise(vec3(vW.x * 1.9, zz * 0.22 + uSeed, uTime * 0.08));
+  float streak = clamp(0.5 + 0.35 * s1 + 0.2 * s2, 0.0, 1.0);
+
+  float glow = min((0.22 + fres * 0.85 + pow(diff, 3.0) * 0.25 + ridge * 0.35) * (0.35 + streak * 0.95), 1.35);
+  vec3 deep  = vec3(0.32, 0.075, 0.015);
+  vec3 ember = vec3(1.0, 0.42, 0.08);
+  vec3 pale  = vec3(1.0, 0.8, 0.55);
+  vec3 silk = mix(deep, ember, clamp(glow * 1.3, 0.0, 1.0));
+  silk = mix(silk, pale, smoothstep(0.85, 1.6, glow));
+  silk *= glow * 0.9;
+
+  // contour lines inside the cursor trail and the click ripples
+  float k = vH * 3.2;
+  float w = max(fwidth(k), 1e-4);
+  float line = 1.0 - min(abs(fract(k) - 0.5) / (w * 1.25), 1.0);
+  line *= 1.0 - smoothstep(0.35, 1.0, w);
+  float reveal = clamp(smoothstep(0.0, 0.55, vTr) + vGlow * 0.7, 0.0, 1.0);
+  vec3 iri = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.67) + vH * 0.32 + vTr * 0.5 + uTime * 0.04));
+  vec3 lineCol = mix(mix(ember, pale, reveal * 0.6), iri, 0.2);
+  float edge = vTr * (1.0 - vTr) * 4.0;
+  vec3 hover = lineCol * line * reveal * 0.55 + mix(ember, iri, 0.4) * (vTr * 0.04 + edge * 0.035);
+
+  gl_FragColor = vec4((silk * (1.0 - vTr * 0.65) * (1.0 - edge * 0.55) + hover) * vFade * uVis, 1.0);
+}`;
+
+function makeField(cols, rows, flip, base, seed, trail, segs) {
+  const n = cols * rows;
+  const pos = new Float32Array(n * 3);
+  const rnd = new Float32Array(n);
+  let k = 0;
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++, k++) {
+    pos[k * 3] = -FIELD_W / 2 + (i + Math.random() * 0.85) / cols * FIELD_W;
+    pos[k * 3 + 2] = FIELD_Z0 + (j + Math.random() * 0.85) / rows * (FIELD_Z1 - FIELD_Z0);
+    rnd[k] = Math.random();
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('aRand', new THREE.BufferAttribute(rnd, 1));
+  // both layers share one set of uniforms so they always move together
+  const uniforms = {
+    uTime: { value: 0 }, uTravel: { value: 0 }, uPR: { value: PR },
+    uFlip: { value: flip }, uBase: { value: base }, uSeed: { value: seed }, uSide: { value: flip < 0 ? 1 : 0 }, uCenter: { value: 0 }, uVis: { value: 1 },
+    uTrail: { value: trail.tex },
+    uRip: { value: Array.from({ length: RIPPLES }, () => new THREE.Vector4(0, 0, -99, 0)) },
+  };
+  const mat = new THREE.ShaderMaterial({
+    uniforms, vertexShader: fieldVert, fragmentShader: fieldFrag,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  pts.userData.rip = 0;
+  pts.userData.trail = trail;
+
+  const sgeo = new THREE.PlaneGeometry(FIELD_W, FIELD_Z1 - FIELD_Z0, segs, Math.round(segs * 1.2));
+  sgeo.rotateX(-Math.PI / 2);
+  sgeo.translate(0, 0, (FIELD_Z0 + FIELD_Z1) / 2);
+  const surf = new THREE.Mesh(sgeo, new THREE.ShaderMaterial({
+    uniforms, vertexShader: surfVert, fragmentShader: surfFrag,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  }));
+  surf.frustumCulled = false;
+  scene.add(surf);
+  scene.add(pts);
+  return pts;
+}
+const GRID = isSmall ? 70 : 115; // sparkles only; the silk surface carries the look
+const SEGS = isSmall ? 140 : 300;
+const floorTrail = new Trail(isSmall ? 256 : 384), ceilTrail = new Trail(isSmall ? 256 : 384);
+const floor = makeField(GRID, GRID, 1, 0, 0, floorTrail, SEGS);
+const ceil = makeField(Math.round(GRID * 0.8), Math.round(GRID * 0.8), -1, 7.4, 13.7, ceilTrail, Math.round(SEGS * 0.7));
+const CEIL_Y = 6.2;
+const FLOOR_DROP = -2.0; // how far the floor sinks once we are inside the field
+
+/* floating dust */
+const DUST = isSmall ? 700 : 1600;
+const dustGeo = new THREE.BufferGeometry();
+{
+  const p = new Float32Array(DUST * 3), r = new Float32Array(DUST);
+  for (let i = 0; i < DUST; i++) {
+    p[i * 3] = (Math.random() - 0.5) * 50; p[i * 3 + 1] = Math.random() * 9 - 1; p[i * 3 + 2] = -Math.random() * 80 + 20;
+    r[i] = Math.random();
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  dustGeo.setAttribute('aRand', new THREE.BufferAttribute(r, 1));
+}
+const dust = new THREE.Points(dustGeo, new THREE.ShaderMaterial({
+  uniforms: { uTime: { value: 0 }, uTravel: { value: 0 }, uPR: { value: PR }, uVis: { value: 0 } },
+  vertexShader: /* glsl */`
+    uniform float uTime, uTravel, uPR; attribute float aRand; varying float vA;
+    void main(){
+      vec3 p = position;
+      p.z = mod(p.z + uTravel*0.6 + 78.0, 100.0) - 78.0;
+      p.y += sin(uTime*0.4 + aRand*30.0)*0.4;
+      p.x += cos(uTime*0.3 + aRand*20.0)*0.4;
+      vec4 mv = modelViewMatrix*vec4(p,1.0);
+      gl_Position = projectionMatrix*mv;
+      gl_PointSize = clamp((1.0+aRand*2.0)*uPR*22.0/-mv.z, 0.0, 14.0);
+      vA = (1.0 - smoothstep(10.0, 70.0, -mv.z)) * smoothstep(0.5, 3.0, -mv.z) * (0.3 + 0.7*sin(uTime*1.5 + aRand*50.0)*0.5 + 0.35);
+    }`,
+  fragmentShader: /* glsl */`
+    uniform float uVis; varying float vA;
+    void main(){ float d=length(gl_PointCoord-0.5); if(d>0.5) discard;
+      gl_FragColor = vec4(1.0,0.72,0.42, (1.0 - smoothstep(0.0,0.5,d))*vA*uVis*0.8); }`,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+}));
+dust.frustumCulled = false;
+scene.add(dust);
+
+/* ---------------------------------------------------------------
+   Particle sculptures: flower, ring, butterfly, gem, bloom-in-halo
+---------------------------------------------------------------- */
+const N = isSmall ? 4200 : 7500;
+const R = Math.random;
+const TAU = Math.PI * 2;
+
+function shapeScatter() {
+  const a = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const ang = R() * TAU, rad = 4 + R() * 12;
+    a[i * 3] = Math.cos(ang) * rad;
+    a[i * 3 + 1] = Math.sin(ang) * rad * 0.7;
+    a[i * 3 + 2] = -R() * 10 + 3;
+  }
+  return a;
+}
+function flowerPoint(scale = 1) {
+  const r = R();
+  if (r < 0.1) { // seed head
+    const t = R() * TAU, q = Math.sqrt(R()) * 0.38;
+    return [Math.cos(t) * q * scale, Math.sin(t) * q * scale, (0.28 - q * 0.4 + R() * 0.06) * scale];
+  }
+  if (r < 0.17) { // stamens
+    const t = Math.floor(R() * 3) / 3 * TAU + 0.5, q = R() * 0.9;
+    return [Math.cos(t) * q * scale, Math.sin(t) * q * scale, (0.3 + q * 0.35) * scale];
+  }
+  const inner = r < 0.42;
+  const petals = 6;
+  const t = R() * TAU;
+  const off = inner ? Math.PI / petals : 0;
+  const Rmax = (inner ? 1.35 : 2.15) * (0.18 + 0.82 * Math.pow(Math.abs(Math.cos(petals / 2 * (t + off))), 0.75));
+  const q = Rmax * Math.pow(R(), 0.33);
+  const lift = inner ? 0.55 : 0.0;
+  return [Math.cos(t) * q * scale, Math.sin(t) * q * scale, (Math.pow(q / 2.15, 2) * (inner ? 0.9 : 0.55) + lift * (q / 1.35) - 0.15 + (R() - 0.5) * 0.05) * scale];
+}
+function shapeFlower() {
+  const a = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) a.set(flowerPoint(1), i * 3);
+  return a;
+}
+function shapeRing() {
+  const a = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const r = R();
+    let x, y, z;
+    if (r < 0.72) { // main torus, edge-biased
+      const u = R() * TAU, v = R() * TAU, tube = 0.26 * Math.pow(R(), 0.3), Rr = 2.05;
+      x = (Rr + tube * Math.cos(v)) * Math.cos(u); z = (Rr + tube * Math.cos(v)) * Math.sin(u); y = tube * Math.sin(v);
+    } else if (r < 0.9) { // dashed outer orbit
+      const u = R() * TAU; const dash = Math.floor(u / TAU * 36) % 2;
+      const Rr = 2.75 + (R() - 0.5) * 0.05; const uu = dash ? u : u + TAU / 36;
+      x = Rr * Math.cos(uu); z = Rr * Math.sin(uu); y = (R() - 0.5) * 0.04;
+    } else { // inner hairline
+      const u = R() * TAU; const Rr = 1.45;
+      x = Rr * Math.cos(u); z = Rr * Math.sin(u); y = (R() - 0.5) * 0.03;
+    }
+    a[i * 3] = x; a[i * 3 + 1] = y; a[i * 3 + 2] = z;
+  }
+  return a;
+}
+function shapeButterfly() {
+  const a = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const r = R();
+    let x, y, z = (R() - 0.5) * 0.06;
+    if (r < 0.08) { // body
+      y = (R() - 0.55) * 2.0; const w = 0.09 * (1 - Math.abs(y) * 0.35);
+      x = (R() - 0.5) * w * 2; z = (R() - 0.5) * w;
+    } else if (r < 0.11) { // antennae
+      const side = R() < 0.5 ? -1 : 1, t = R();
+      x = side * (0.06 + t * 0.55) ; y = 0.9 + t * 0.9 - t * t * 0.25;
+    } else { // Fay's butterfly curve, filled toward the edge
+      const t = R() * 12 * Math.PI;
+      const e = Math.exp(Math.cos(t)) - 2 * Math.cos(4 * t) - Math.pow(Math.sin(t / 12), 5);
+      const f = 0.2 + 0.8 * Math.pow(R(), 0.3);
+      x = Math.sin(t) * e * 0.58 * f;
+      y = (Math.cos(t) * e * 0.58 * f) - 0.35;
+    }
+    a[i * 3] = x; a[i * 3 + 1] = y; a[i * 3 + 2] = z;
+  }
+  return a;
+}
+function shapeGem() {
+  const a = new Float32Array(N * 3);
+  const S = 8, Rg = 1.75, Rt = 0.95, yG = 0.3, yT = 0.95, yC = -1.75;
+  const poly = (t, rad) => { // radius of an S-gon at angle t
+    const seg = TAU / S; const m = ((t % seg) + seg) % seg - seg / 2;
+    return rad * Math.cos(Math.PI / S) / Math.cos(m);
+  };
+  for (let i = 0; i < N; i++) {
+    let t = R() * TAU;
+    const edge = R() < 0.45;
+    if (edge) t = Math.round(t / (TAU / S)) * (TAU / S) + (R() < 0.5 ? 0 : 0);
+    const part = R();
+    let y, rad;
+    if (part < 0.33) { // crown
+      const k = R(); y = lerp(yG, yT, k); rad = lerp(Rg, Rt, k);
+      if (edge && R() < 0.3) { y = yG; }
+    } else if (part < 0.45) { // table
+      y = yT; rad = Rt * (edge ? 1 : Math.sqrt(R()));
+      if (!edge && R() < 0.6) rad = Rt;
+    } else { // pavilion
+      const k = Math.pow(R(), 0.8); y = lerp(yG, yC, k); rad = lerp(Rg, 0, k);
+    }
+    const pr = poly(t, rad);
+    const j = edge ? 0.012 : 0.03;
+    a[i * 3] = Math.cos(t) * pr + (R() - 0.5) * j;
+    a[i * 3 + 1] = y + (R() - 0.5) * j;
+    a[i * 3 + 2] = Math.sin(t) * pr + (R() - 0.5) * j;
+  }
+  return a;
+}
+function shapeHalo() {
+  const a = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    if (i < N * 0.34) {
+      const u = R() * TAU, Rr = 2.75 + (R() - 0.5) * 0.12;
+      a.set([Math.cos(u) * Rr, Math.sin(u) * Rr, (R() - 0.5) * 0.1], i * 3);
+    } else a.set(flowerPoint(0.95), i * 3);
+  }
+  return a;
+}
+
+const SHAPES = {
+  scatter: { pos: shapeScatter(), rx: 0, spin: false },
+  flower: { pos: shapeFlower(), rx: -0.35, spin: false },
+  ring: { pos: shapeRing(), rx: 0.42, spin: true },
+  butterfly: { pos: shapeButterfly(), rx: 0.15, spin: false, flap: true },
+  gem: { pos: shapeGem(), rx: 0.22, spin: true },
+  halo: { pos: shapeHalo(), rx: -0.2, spin: false },
+};
+
+const shapeGeo = new THREE.BufferGeometry();
+const cur = SHAPES.scatter.pos.slice();
+const speed = new Float32Array(N);
+{
+  const r = new Float32Array(N);
+  for (let i = 0; i < N; i++) { r[i] = R(); speed[i] = 0.022 + R() * 0.05; }
+  shapeGeo.setAttribute('position', new THREE.BufferAttribute(cur, 3).setUsage(THREE.DynamicDrawUsage));
+  shapeGeo.setAttribute('aRand', new THREE.BufferAttribute(r, 1));
+}
+const shapeMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: { value: 0 }, uPR: { value: PR }, uPulse: { value: 0 }, uAlpha: { value: 0.4 },
+    uMouse: { value: new THREE.Vector2(9, 9) }, uHover: { value: 0 }, uAspect: { value: innerWidth / innerHeight },
+  },
+  vertexShader: /* glsl */`
+    uniform float uTime, uPR, uPulse, uHover, uAspect; uniform vec2 uMouse;
+    attribute float aRand; varying float vA, vR, vF;
+    void main(){
+      vec3 p = position;
+      p += 0.025 * vec3(sin(uTime*1.3 + aRand*40.0), cos(uTime*1.1 + aRand*31.0), sin(uTime*0.9 + aRand*23.0));
+      p += normalize(p + 1e-4) * uPulse * (0.35 + aRand) * 0.9;
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      vec4 clip = projectionMatrix * mv;
+      vec2 ndc = clip.xy / clip.w;
+      vec2 d = (ndc - uMouse) * vec2(uAspect, 1.0);
+      // soft bulge: strongest a little way from the cursor, zero at its centre, so no hole or rim forms
+      float g = exp(-dot(d, d) / 0.045) * uHover;
+      mv.xy += d * g * 0.55 * (-mv.z) * 0.52;
+      float f = g * 0.5;
+      gl_Position = projectionMatrix * mv;
+      gl_PointSize = clamp((0.6 + aRand*1.4) * uPR * 26.0 / -mv.z, 1.0, 22.0);
+      vR = aRand; vF = f;
+      vA = 0.55 + 0.45 * sin(uTime*2.2 + aRand*60.0);
+    }`,
+  fragmentShader: /* glsl */`
+    uniform float uAlpha; varying float vA, vR, vF;
+    void main(){
+      float d = length(gl_PointCoord - 0.5); if(d > 0.5) discard;
+      float soft = (1.0 - smoothstep(0.05, 0.5, d));
+      vec3 col = mix(vec3(1.0,0.38,0.06), vec3(1.0,0.88,0.7), clamp(pow(vR,3.0) + vF*0.8, 0.0, 1.0));
+      gl_FragColor = vec4(col, soft * vA * uAlpha * 0.55);
+    }`,
+  transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
+});
+const sculpt = new THREE.Points(shapeGeo, shapeMat);
+sculpt.frustumCulled = false;
+sculpt.renderOrder = 10;
+const sculptRig = new THREE.Group();
+sculptRig.add(sculpt);
+camera.add(sculptRig);
+
+/* ---------------------------------------------------------------
+   Scroll story
+---------------------------------------------------------------- */
+const SECTIONS = [
+  { a: 0.00, b: 0.085, shape: 'scatter', status: 'Scroll to sink in', go: 0 },
+  { a: 0.17, b: 0.31, shape: 'flower', status: 'Stay close', go: 0.24 },
+  { a: 0.31, b: 0.45, shape: 'ring', status: 'Stay close', go: 0.38 },
+  { a: 0.45, b: 0.59, shape: 'butterfly', status: 'Stay close', go: 0.52 },
+  { a: 0.59, b: 0.73, shape: 'gem', status: 'Stay close', go: 0.66 },
+  { a: 0.79, b: 1.01, shape: 'halo', status: 'The last light', go: 1 },
+];
+const panels = $$('.ui section[data-sec]');
+const railBtns = $$('#rail button');
+const statusEl = $('#status');
+let activeSec = -2, ready = false;
+
+function sectionAt(p) {
+  for (let i = 0; i < SECTIONS.length; i++) {
+    const s = SECTIONS[i];
+    const pad = i === 0 ? 0 : 0.012;
+    if (p >= s.a + pad && (i === SECTIONS.length - 1 || p < s.b - pad)) return i;
+  }
+  return -1;
+}
+function countUp(el) {
+  const to = +el.dataset.to, t0 = performance.now(), dur = 1300;
+  const tick = now => {
+    const k = clamp((now - t0 - 450) / dur, 0, 1), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = `(${String(Math.round(to * e)).padStart(3, '0')})`;
+    if (k < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+let statusWant = statusEl.textContent, statusTimer = 0;
+function setStatus(txt) {
+  if (statusWant === txt) return;
+  statusWant = txt;
+  clearTimeout(statusTimer);
+  statusEl.classList.add('swap');
+  statusTimer = setTimeout(() => { statusEl.textContent = txt; statusEl.classList.remove('swap'); }, 300);
+}
+function setActive(i) {
+  if (i === activeSec) return;
+  activeSec = i;
+  panels.forEach(p => {
+    const on = +p.dataset.sec === i;
+    p.classList.toggle('is-active', on);
+    p.setAttribute('aria-hidden', String(!on));
+    if (on) { const c = $('.count', p); if (c) countUp(c); }
+  });
+  let railIdx = i;
+  if (i < 0) railIdx = SECTIONS.findIndex(s => s.a > prog) - 1;
+  railBtns.forEach((b, k) => b.classList.toggle('on', k === railIdx));
+  setStatus(i >= 0 ? SECTIONS[i].status : (prog > 0.74 ? 'Almost there' : 'Keep drifting'));
+}
+function scrollToFrac(f) {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  window.scrollTo({ top: f * max, behavior: reduce ? 'auto' : 'smooth' });
+}
+railBtns.forEach(b => b.addEventListener('click', () => scrollToFrac(SECTIONS[+b.dataset.sec].go)));
+$$('[data-goto]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); scrollToFrac(+b.dataset.goto); }));
+
+let tProg = 0, prog = 0;
+function onScroll() {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  tProg = max > 0 ? clamp(scrollY / max, 0, 1) : 0;
+}
+addEventListener('scroll', onScroll, { passive: true });
+
+/* ---------------------------------------------------------------
+   Pointer: hover glow, click ripples
+---------------------------------------------------------------- */
+const ndc = new THREE.Vector2(0, 0);
+const ndcSmooth = new THREE.Vector2(0, 0);
+let pointerIn = false, hoverAmt = 0, lastTouch = 0;
+const ray = new THREE.Raycaster();
+const cursor = $('#cursor'), cursorDot = $('#cursorDot');
+let cx = -100, cy = -100, dx = -100, dy = -100;
+
+function planeHit(y) {
+  ray.setFromCamera(ndc, camera);
+  const o = ray.ray.origin, d = ray.ray.direction;
+  if (Math.abs(d.y) < 1e-4) return null;
+  const t = (y - o.y) / d.y;
+  if (t < 0 || t > 140) return null;
+  return new THREE.Vector2(o.x + d.x * t, o.z + d.z * t);
+}
+function setPointer(e) {
+  ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  dx = e.clientX; dy = e.clientY;
+  pointerIn = true;
+}
+addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') return;
+  setPointer(e);
+}, { passive: true });
+document.addEventListener('pointerleave', () => { pointerIn = false; });
+addEventListener('blur', () => { pointerIn = false; });
+
+function addRipple(field, at, strength) {
+  const u = field.material.uniforms;
+  const k = field.userData.rip++ % RIPPLES;
+  u.uRip.value[k].set(at.x, at.y, u.uTime.value, strength);
+}
+addEventListener('pointerdown', e => {
+  if (e.target instanceof Element && e.target.closest('button, a')) return;
+  setPointer(e);
+  if (e.pointerType === 'touch') lastTouch = performance.now();
+  cursor.classList.add('down');
+  const hitF = planeHit(0.4 + FLOOR_DROP * ceilVis);
+  const hitC = ceilVis > 0.3 ? planeHit(CEIL_Y) : null;
+  ray.setFromCamera(ndc, camera);
+  if (ray.ray.direction.y < 0 && hitF) addRipple(floor, hitF, 1);
+  else if (hitC) addRipple(ceil, hitC, 1);
+  else if (hitF) addRipple(floor, hitF, 1);
+  shapeMat.uniforms.uPulse.value = Math.min(1.2, shapeMat.uniforms.uPulse.value + (reduce ? 0.3 : 0.9));
+  for (const two of [false, true]) {
+    const r = document.createElement('div');
+    r.className = 'tap' + (two ? ' two' : '');
+    r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px';
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 1300);
+  }
+  blip();
+});
+addEventListener('pointerup', () => cursor.classList.remove('down'));
+document.addEventListener('pointerover', e => cursor.classList.toggle('big', e.target instanceof Element && !!e.target.closest('button, a')));
+
+/* ---------------------------------------------------------------
+   Sound: a low ember drone and a soft blip for ripples
+---------------------------------------------------------------- */
+let actx = null, master = null, soundOn = false;
+function initAudio() {
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  master = actx.createGain(); master.gain.value = 0; master.connect(actx.destination);
+  const filt = actx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 420; filt.Q.value = 5; filt.connect(master);
+  [[55, 'sawtooth', 0.16], [55.35, 'sawtooth', 0.16], [82.4, 'triangle', 0.1], [110.6, 'sine', 0.08]].forEach(([f, type, g]) => {
+    const o = actx.createOscillator(); o.type = type; o.frequency.value = f;
+    const gn = actx.createGain(); gn.gain.value = g; o.connect(gn); gn.connect(filt); o.start();
+  });
+  const lfo = actx.createOscillator(); lfo.frequency.value = 0.06;
+  const lg = actx.createGain(); lg.gain.value = 240; lfo.connect(lg); lg.connect(filt.frequency); lfo.start();
+}
+function blip() {
+  if (!soundOn || !actx) return;
+  const t = actx.currentTime;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(740 + Math.random() * 200, t);
+  o.frequency.exponentialRampToValueAtTime(220, t + 0.6);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+  o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.85);
+}
+$('#sound').addEventListener('click', e => {
+  if (!actx) initAudio();
+  soundOn = !soundOn;
+  actx.resume();
+  master.gain.setTargetAtTime(soundOn ? 0.14 : 0, actx.currentTime, 0.5);
+  e.currentTarget.setAttribute('aria-pressed', String(soundOn));
+  $('#soundLabel').textContent = soundOn ? 'Sound on' : 'Sound off';
+  if (soundOn) blip();
+});
+
+/* share */
+$('#share').addEventListener('click', async e => {
+  const btn = e.currentTarget;
+  try {
+    if (navigator.share) { await navigator.share({ title: document.title, url: location.href }); return; }
+    await navigator.clipboard.writeText(location.href);
+    btn.textContent = 'Link copied';
+  } catch { btn.textContent = 'Copy the URL'; }
+  setTimeout(() => (btn.textContent = 'Share'), 1800);
+});
+
+/* ---------------------------------------------------------------
+   Resize
+---------------------------------------------------------------- */
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.fov = w / h < 0.8 ? 62 : 55;
+  camera.updateProjectionMatrix();
+  shapeMat.uniforms.uAspect.value = w / h;
+  onScroll();
+}
+addEventListener('resize', resize);
+
+/* ---------------------------------------------------------------
+   Loop
+---------------------------------------------------------------- */
+const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+const HERO_POS = new THREE.Vector3(0, 10.5, 24), HERO_LOOK = new THREE.Vector3(0, 0.5, -14);
+const IN_POS = new THREE.Vector3(0, 3.7, 9), IN_LOOK = new THREE.Vector3(0, 3.5, -14);
+let shapeKey = 'scatter', spin = 0, sway = 0, ceilVis = 0, time = 0, last = performance.now();
+let rigY = 0.5, rigS = 1, rigRx = 0;
+
+function frame(now) {
+  const dt = clamp((now - last) / 1000, 0, 0.05);
+  last = now;
+  time += dt;
+
+  prog += (tProg - prog) * Math.min(1, dt * 4.2);
+  const dive = smooth(0.06, 0.17, prog);
+  ceilVis = dive;
+
+  // camera: hover over the field, then sink into it
+  ndcSmooth.lerp(ndc, Math.min(1, dt * 3));
+  camPos.lerpVectors(HERO_POS, IN_POS, dive);
+  camLook.lerpVectors(HERO_LOOK, IN_LOOK, dive);
+  const bob = reduce ? 0 : Math.sin(time * 0.5) * 0.15 * dive;
+  camPos.x += ndcSmooth.x * (1.2 - dive * 0.4);
+  camPos.y += ndcSmooth.y * 0.5 + bob;
+  camLook.x += ndcSmooth.x * 0.6;
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+  camera.updateMatrixWorld();
+
+  const travel = prog * 120 + time * (reduce ? 0.2 : 1.0);
+  hoverAmt = lerp(hoverAmt, pointerIn || performance.now() - lastTouch < 1500 ? 1 : 0, Math.min(1, dt * 4));
+
+  for (const f of [floor, ceil]) {
+    const u = f.material.uniforms;
+    u.uTime.value = time;
+    u.uTravel.value = travel;
+  }
+  ceil.material.uniforms.uVis.value = ceilVis * 0.85;
+  floor.material.uniforms.uBase.value = FLOOR_DROP * dive;
+  floor.material.uniforms.uCenter.value = dive;
+  dust.material.uniforms.uTime.value = time;
+  dust.material.uniforms.uTravel.value = travel;
+  dust.material.uniforms.uVis.value = 0.3 + dive * 0.7;
+
+  // the cursor presses a fading trail into the field, which reveals its contour lines
+  const painting = pointerIn || performance.now() - lastTouch < 600;
+  ray.setFromCamera(ndc, camera);
+  const lookingDown = ray.ray.direction.y < 0.02;
+  floorTrail.paint(painting && lookingDown ? planeHit(0.4 + FLOOR_DROP * ceilVis) : null);
+  ceilTrail.paint(painting && !lookingDown && ceilVis > 0.2 ? planeHit(CEIL_Y) : null);
+  floorTrail.update(dt);
+  ceilTrail.update(dt);
+
+  // sculpture
+  const sec = ready ? sectionAt(prog) : 0;
+  const nextKey = sec >= 0 ? SECTIONS[sec].shape : 'scatter';
+  if (nextKey !== shapeKey) shapeKey = nextKey;
+  const S = SHAPES[shapeKey];
+  const tgt = S.pos;
+  const flap = S.flap ? Math.sin(time * 2.4) * 0.6 : 0;
+  const rate = dt * 60;
+  for (let i = 0, j = 0; i < N; i++, j += 3) {
+    let tx = tgt[j], ty = tgt[j + 1], tz = tgt[j + 2];
+    if (S.flap) { const ax = Math.abs(tx); tz += ax * flap * 0.85; tx *= 1 - Math.abs(flap) * 0.22; }
+    const k = Math.min(1, speed[i] * rate);
+    cur[j] += (tx - cur[j]) * k;
+    cur[j + 1] += (ty - cur[j + 1]) * k;
+    cur[j + 2] += (tz - cur[j + 2]) * k;
+  }
+  shapeGeo.attributes.position.needsUpdate = true;
+
+  const su = shapeMat.uniforms;
+  su.uTime.value = time;
+  su.uPulse.value *= Math.pow(0.04, dt);
+  su.uMouse.value.lerp(ndc, Math.min(1, dt * 5));
+  su.uHover.value = lerp(su.uHover.value, pointerIn && !isTouch ? 1 : 0, Math.min(1, dt * 2.5));
+  su.uAlpha.value = lerp(su.uAlpha.value, shapeKey === 'scatter' ? 0.32 : 1, Math.min(1, dt * 2));
+
+  const aspect = innerWidth / innerHeight;
+  const portrait = aspect < 0.9;
+  const outro = shapeKey === 'halo';
+  rigS = lerp(rigS, (portrait ? clamp(aspect * 1.25, 0.52, 0.9) : 1) * (outro ? 0.82 : 1), Math.min(1, dt * 3));
+  rigY = lerp(rigY, (portrait ? 0.95 : 0.6) + (outro ? (portrait ? 0.35 : 0.2) : 0), Math.min(1, dt * 3));
+  sculptRig.position.set(0, rigY, -7.5);
+  sculptRig.scale.setScalar(rigS);
+
+  if (S.spin && !reduce) spin += dt * 0.45;
+  else spin += (Math.round(spin / TAU) * TAU - spin) * Math.min(1, dt * 1.5);
+  sway = reduce ? 0 : Math.sin(time * 0.4) * 0.3;
+  rigRx = lerp(rigRx, S.rx - ndcSmooth.y * 0.25, Math.min(1, dt * 2.5));
+  sculpt.rotation.set(rigRx, spin + sway + ndcSmooth.x * 0.45, shapeKey === 'scatter' ? time * 0.02 : 0);
+
+  // overlay
+  if (ready) setActive(sec);
+
+  // cursor
+  cx = lerp(cx, dx, Math.min(1, dt * 14)); cy = lerp(cy, dy, Math.min(1, dt * 14));
+  cursor.style.transform = `translate3d(${cx}px,${cy}px,0)`;
+  cursorDot.style.transform = `translate3d(${dx}px,${dy}px,0)`;
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+/* ---------------------------------------------------------------
+   Loader
+---------------------------------------------------------------- */
+resize();
+requestAnimationFrame(frame);
+(async () => {
+  const arc = $('#arc'), num = $('#loadNum');
+  const fontsReady = (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => (fontsDone = true));
+  let fontsDone = false, shown = 0;
+  const t0 = performance.now();
+  await new Promise(res => {
+    const step = now => {
+      const target = Math.min(fontsDone ? 100 : 88, (now - t0) / 16);
+      shown += (target - shown) * 0.12;
+      if (target >= 100 && shown > 99.4) shown = 100;
+      arc.style.strokeDashoffset = 339.3 * (1 - shown / 100);
+      num.textContent = Math.round(shown);
+      if (shown >= 100) res(); else requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  $('#loader').classList.add('done');
+  document.body.classList.remove('loading');
+  window.scrollTo(0, 0);
+  onScroll();
+  setTimeout(() => { ready = true; }, 350);
+})();
+</script>
+</body>
+</html>
